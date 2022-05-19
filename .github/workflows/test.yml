@@ -1,24 +1,47 @@
-name: 'build-test'
+name: "build-test"
 on: # rebuild any PRs and main branch changes
   pull_request:
   push:
     branches:
       - main
-      - 'releases/*'
+      - "releases/*"
 
 jobs:
-  build: # make sure build/ci work properly
+  # build: # make sure build/ci work properly
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: |
+  #         npm install
+  #     - run: |
+  #         npm run all
+  # test: # make sure the action works on a clean machine without building
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: ./
+  #       with:
+  #         milliseconds: 1000
+  create-runner:
     runs-on: ubuntu-latest
+    outputs:
+      runner_label: ${{ steps.create-runner.outputs.runner_label }}
     steps:
-      - uses: actions/checkout@v2
-      - run: |
-          npm install
-      - run: |
-          npm run all
-  test: # make sure the action works on a clean machine without building
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./
+      - id: create-runner
+        uses: geekflyer/action-gce-runner@impl
         with:
-          milliseconds: 1000
+          gh_actions_runner_token: ${{ secrets.GH_ACTIONS_RUNNER_TOKEN }}
+          gcp_project: ${{ secrets.GCP_PROJECT_ID }}
+          gcp_service_account_key: ${{ secrets.GCP_SERVICE_KEY }}
+          gcp_zone: us-west1-1c
+          gcp_image_family: ubuntu-2004-lts
+
+  test:
+    needs: create-runner
+    runs-on: ${{ needs.create-runner.outputs.runner_label }}
+    steps:
+      - run: echo "This runs on the GCE runner VM"
+      - uses: geekflyer/action-gce-runner@impl
+        with:
+          command: stop
+        if: always()
