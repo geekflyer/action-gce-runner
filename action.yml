@@ -1,11 +1,47 @@
-name: 'Your name here'
+name: 'action-gce-runner'
 description: 'Provide a description here'
 author: 'Your name or organization here'
 inputs:
-  milliseconds: # change this
+  command:
+    description: "`start` or `stop` of the runner"
+    default: create
+    required: false
+  gh_api_token_to_issue_runner_tokens:
+    description: >-
+      GitHub auth token, needs `repo`/`public_repo` scope: https://docs.github.com/en/rest/reference/actions#self-hosted-runners.
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  gh_runner_version:
+    description: Version of the GitHub Runner.
+    default: "2.291.1"
+    required: false
+  gcp_project:
+    description: The GCP project in which to run the build. E.g. `acme-corp-ci`
+    required: true
+  gcp_service_account_key:
+    description: A GCP service account key in JSON format.
+    required: true
+  gcp_zone:
+    description: GCE zone
+    required: true
+    default: "us-west-1b"
+  gcp_image_family:
+    description: the GCP image family
+    required: false
+    default: ubuntu-2204-lts
+  gcp_image_project:
+    description: the gcp image project
+    required: true
+    default: ubuntu-2204-lts
+  gcp_machine_type:
+    description: foo
+    required: true
+    default: e2-medium
+
+outputs:
+  runner_label:
+    description: >-
+      Unique runner label. This label can be used to request a specific
+      runner for the workflow job.
 runs:
   using: 'node16'
   main: 'dist/index.js'
